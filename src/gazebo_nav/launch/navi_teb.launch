@@ -1,0 +1,18 @@
+<launch>
+
+  <include file="$(find gazebo_pkg)/launch/car_world.launch"/>
+
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find gazebo_nav)/map/map_car.yaml" output="screen">
+   <param name="frame_id" value="map" />
+  </node>
+
+  <!-- AMCL -->
+  <include file="$(find gazebo_nav)/launch/amcl.launch"/>
+
+  <!-- move_base -->
+  <include file="$(find gazebo_nav)/launch/move_base_teb.launch"/>
+
+  <!-- 启动rviz -->
+  <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(find gazebo_nav)/rviz/navigation.rviz" /> 
+  
+</launch>

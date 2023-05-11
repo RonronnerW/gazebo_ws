@@ -1,0 +1,19 @@
+<launch>
+
+    <!-- 将 urdf 文件内容设置进参数服务器 -->
+    <param name="robot_description" command="$(find xacro)/xacro $(find gazebo_pkg)/urdf/car_model.xacro" />
+
+    <!-- 启动 gazebo -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find gazebo_pkg)/world/world.world"/> 
+    </include>
+    
+    <!-- 在 gazebo 中显示机器人模型 -->
+    <node pkg="gazebo_ros" type="spawn_model" name="model" args="-urdf -model smart_car -param robot_description"  />
+
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find gazebo_pkg)/rviz/smartcar.rviz" required="true"/> -->
+</launch>
+ 

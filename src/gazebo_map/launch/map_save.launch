@@ -1,0 +1,5 @@
+<launch>
+    <arg name="map" value="$(find gazebo_map)/map/map" />
+    <node name="map_save" pkg="map_server" type="map_saver" args="-f $(arg map)" />
+</launch>
+

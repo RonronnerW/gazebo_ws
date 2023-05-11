@@ -1,0 +1,263 @@
+<?xml version="1.0"?>
+
+<robot name="smart_car" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- inertial 标签，标注了当前机器人某个刚体部分的惯性矩阵，用于一些力学相关的仿真计算 -->
+  <xacro:macro name="default_inertial" params="mass">
+    <inertial>
+      <mass value="${mass}" />
+      <inertia ixx="0.1" ixy="0.0" ixz="0.0" iyy="0.1" iyz="0.0" izz="0.1" />
+    </inertial>
+	</xacro:macro>
+
+    <!-- 宏:黑色设置 -->
+  <material name="black">
+      <color rgba="0.0 0.0 0.0 0.8" />
+  </material>
+
+  <!-- 底盘属性 -->
+  <xacro:property name="base_link_radius" value="0.1" /> <!-- base_link 半径 0.1-->
+  <xacro:property name="base_link_length" value="0.08" /> <!-- base_link 长 0.08-->
+  <xacro:property name="earth_space" value="0.015" /> 
+  
+  <!-- 轮子 -->
+  <xacro:property name="length_wheel" value="0.05" />
+	<xacro:property name="radius_wheel" value="0.06" />
+  <xacro:property name="PI" value="3.1415926"/>
+
+  <link name="base_footprint">
+    <visual>
+      <geometry>
+          <box size="0.001 0.001 0.001"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+    </visual>
+    <xacro:default_inertial mass="0.0001"/>
+ 	</link>
+
+	<gazebo reference="base_footprint">
+		<material>Gazebo/Green</material>
+		<turnGravityOff>false</turnGravityOff>
+	</gazebo>
+  
+  <link name="base_link">
+    <visual>
+      <geometry>
+          <box size="0.2 0.3 0.1"/>
+      </geometry>
+      <origin rpy="0 0 ${PI/2}" xyz="0 0 0.05"/> 
+      <material name="white">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.2 0.3 0.1"/>
+      </geometry>
+    </collision>
+    <xacro:default_inertial mass="8.2"/>
+  </link>
+
+  <joint name="base_footprint_joint" type="fixed">
+    <origin xyz="0 0 0" />
+    <parent link="base_footprint" />
+    <child link="base_link" />
+  </joint>
+
+  <!-- 轮子 宏 -->
+  <xacro:macro name="add_wheels" params="name flag1 flag2">
+    <link name="wheel_${name}">
+      <visual>
+        <geometry>
+          <cylinder length="${length_wheel}" radius="${radius_wheel}"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <material name="black">
+          <color rgba="0 0 0 1" />
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder length="${length_wheel}" radius="${radius_wheel}"/>
+        </geometry>
+      </collision>
+      <mu1>0.5</mu1>
+		  <mu2>0.5</mu2>
+      <xacro:default_inertial mass="0.5"/>  
+    </link>
+
+    <joint name="base_link2wheel_${name}" type="continuous">
+      <parent link="base_link" />
+      <child link="wheel_${name}" />
+      <origin rpy="${-PI/2} 0 0" xyz="${flag1*0.1} ${flag2*0.13} 0"/>
+      <axis xyz="0 0 1" />
+    </joint>
+
+  </xacro:macro>
+
+  <!-- 调用 -->
+  <xacro:add_wheels name="1" flag1="1" flag2="1" />
+  <xacro:add_wheels name="2" flag1="-1" flag2="1" />
+  <xacro:add_wheels name="3" flag1="1" flag2="-1" />
+  <xacro:add_wheels name="4" flag1="-1" flag2="-1" />
+
+  <!-- gazebo插件设置相关 -->
+
+  <gazebo reference="base_link">
+    <material>Gazebo/Orange</material>
+  </gazebo>
+
+  <gazebo reference="wheel_1">
+    <material>Gazebo/Red</material>
+  </gazebo>
+
+  <gazebo reference="wheel_2">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="wheel_3">
+    <material>Gazebo/Red</material>
+  </gazebo>
+
+  <gazebo reference="wheel_4">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <!-- IMU -->
+  <link name="imu_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.05 0.05 0.05"/>
+      </geometry>
+      <material name="yellow">
+        <color rgba="0.5 0.3 0.0 0.5"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+      <box size="0.05 0.05 0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1e-2" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <!-- IMU joint -->
+  <joint name="imu_joint" type="fixed">
+    <axis xyz="0 1 0" />
+    <origin xyz="0.125 0 0.125" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+  </joint>
+
+  <!-- Hokuyo Laser -->
+  <link name="laser_frame">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://gazebo_pkg/meshes/hokuyo.dae"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+	      <box size="0.05 0.05 0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1e-2" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <!-- Hokuyo joint -->
+  <joint name="hokuyo_joint" type="fixed">
+    <origin xyz="0.125 0.0 0.175" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <axis xyz="0 1 0" />
+    <child link="laser_frame"/>
+  </joint>
+
+  <!-- Drive controller -->
+  <gazebo>
+    <plugin name="skid_steer_drive_controller" filename="libgazebo_ros_skid_steer_drive.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>100.0</updateRate>
+      <robotNamespace>/</robotNamespace>
+      <leftFrontJoint>base_link2wheel_1</leftFrontJoint>
+      <rightFrontJoint>base_link2wheel_3</rightFrontJoint>
+      <leftRearJoint>base_link2wheel_2</leftRearJoint>
+      <rightRearJoint>base_link2wheel_4</rightRearJoint>
+      <wheelSeparation>0.26</wheelSeparation>
+      <wheelDiameter>0.12</wheelDiameter>
+      <torque>2</torque>
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom</odometryTopic>
+      <odometryFrame>odom</odometryFrame>
+      <robotBaseFrame>base_footprint</robotBaseFrame>
+      <broadcastTF>1</broadcastTF>
+    </plugin>
+  </gazebo>
+
+  <!-- imu控制 -->
+  <gazebo reference="imu_link">
+    <material>Gazebo/Orange</material>
+    <gravity>true</gravity>
+    <sensor name="imu_sensor" type="imu">
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <visualize>true</visualize>
+        <topic>__default_topic__</topic>
+        <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+            <topicName>imu</topicName>
+            <bodyName>imu_link</bodyName>
+            <updateRateHZ>100.0</updateRateHZ>
+            <gaussianNoise>0.0</gaussianNoise>
+            <xyzOffset>0 0 0</xyzOffset>
+            <rpyOffset>0 0 0</rpyOffset>
+            <frameName>imu_link</frameName>
+        </plugin>
+        <pose>0 0 0 0 0 0</pose>
+    </sensor>
+  </gazebo>
+
+  <!-- 雷达 -->
+  <gazebo reference="laser_frame">
+    <sensor type="ray" name="head_hokuyo_sensor">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>false</visualize>
+      <update_rate>15</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>720</samples>
+            <resolution>1</resolution>
+            <min_angle>-3.1415926</min_angle>
+            <max_angle>3.1415926</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.05</min>
+          <max>30.0</max>
+          <resolution>0.01</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </ray>
+      <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
+        <topicName>/scan</topicName>
+        <frameName>laser_frame</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+</robot>

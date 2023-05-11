@@ -1,0 +1,43 @@
+allow_unknown: false
+#(bool, default: true)
+#是否允许规划路径穿越未知区域
+default_tolerance: 0.0
+#(double, default: 0.0)
+#靠近目标点的周围多少数值就算到了目标点
+visualize_potential: true
+#(bool, default: false)
+#是否允许发布点云表达的代价趋势
+use_dijkstra: false
+#(bool, default: true)
+#是否使用D*全局规划算法,如果设置为false就用A*
+use_quadratic: true
+#(bool, default:true)
+#是否使用二次逼近的趋势,默认为true,否则使用简单的线性方法
+use_grid_path: true
+#(bool, default: false)
+#输出路径是否沿着网格规划路径,false时就使用梯度下降法(最速下降法)
+old_navfn_behavior: false
+#(bool, default: false)
+#如果你想要让global_planner跟之前的navfn版本效果一样,就设true
+lethal_cost: 253
+#(int, default: 253)
+#障碍物致命区域的代价数值（dynamic reconfigure,可以动态参数配置）
+neutral_cost: 65
+#(int, default: 50)
+#中立区域的cost值（动态配置）
+cost_factor: 3.0
+#(double, default: 3.)
+#cost因子,占用网格的系数,用于将每层costmap对应的cost数值乘起来（动态配置）
+publish_potential: true
+#(bool, default: True)
+#发布可能的代价地图（动态配置）
+orientation_mode: 3
+#(int, default: 0)
+#设置每个点的朝向(None=0, Forward=1, Interpolate=2, ForwardThenInterpolate=3, Backward=4, Leftward=5, Rightward=6)(动态配置)
+orientation_window_size: 1
+#(int, default 1)
+#方向窗口大小(动态配置)
+
+
+
+

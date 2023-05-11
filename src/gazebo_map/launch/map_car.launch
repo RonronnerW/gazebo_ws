@@ -1,0 +1,12 @@
+<launch>
+
+    <include file="$(find gazebo_pkg)/launch/car_world.launch" />
+
+    <include file="$(find gazebo_map)/amcl/amcl.launch" />
+
+    <include file="$(find gazebo_map)/launch/cartographer.launch" />
+    
+    <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(find gazebo_map)/rviz/demo_rviz.rviz" /> 
+
+</launch>
+ 
